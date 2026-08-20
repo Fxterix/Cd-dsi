@@ -15,12 +15,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget curl gdebi-core
           
-          # Descargar y ejecutar el script oficial de instalación de devkitPro
-          wget https://apt.devkitpro.org/install-devkitpro-pacman
-          chmod +x ./install-devkitpro-pacman
-          sudo ./install-devkitpro-pacman
+          # Descargar el instalador desde la release oficial de devkitPro/pacman
+          wget https://github.com/devkitPro/pacman/releases/latest/download/devkitpro-pacman.amd64.deb -O devkitpro-pacman.deb
+          sudo gdebi --non-interactive devkitpro-pacman.deb
           
-          # Instalar herramientas para DSi (devkitARM, libnds, etc.)
+          # Instalar herramientas para DSi
           sudo dkp-pacman -Syy --noconfirm devkitARM dsi-dev
 
       - name: Compile game
