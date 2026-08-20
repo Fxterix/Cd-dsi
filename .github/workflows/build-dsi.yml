@@ -15,18 +15,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget curl gdebi-core
           
-          # Descargar el script de instalación oficial
+          # Descargar y ejecutar el script oficial de instalación
           wget --user-agent="Mozilla" https://apt.devkitpro.org/install-devkitpro-pacman
           chmod +x ./install-devkitpro-pacman
-          
-          # Inicializar el directorio de llaves antes de correr el script para evitar errores de permisos
           sudo mkdir -p /opt/devkitpro/pacman/etc/pacman.d/gnupg
-          
-          # Ejecutar el script oficial completo
           sudo ./install-devkitpro-pacman
           
-          # Instalar herramientas para DSi (devkitARM, libnds, etc.)
-          sudo dkp-pacman -S --noconfirm devkitARM dsi-dev
+          # Instalar herramientas para DS/DSi (nds-dev incluye devkitARM y libnds)
+          sudo dkp-pacman -S --noconfirm devkitARM nds-dev
 
       - name: Compile game
         run: |
