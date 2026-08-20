@@ -13,10 +13,13 @@ jobs:
       - name: Install devkitPro and DSi tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget curl gdebi-core
-          sudo wget https://apt.devkitpro.org/devkitpro-keyring.gpg -O /usr/share/keyrings/devkitpro-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/devkitpro-keyring.gpg] https://apt.devkitpro.org stable main" | sudo tee /etc/apt/sources.list.d/devkitpro.list
-          sudo apt-get update
+          sudo apt-get install -y wget curl gdebi-core apt-transport-https
+          
+          # Descargar e instalar el paquete oficial de devkitPro pacman
+          wget https://github.com/devkitPro/pacman-package-manager/releases/download/v1.0.3/devkitpro-pacman.amd64.deb -O devkitpro-pacman.deb
+          sudo gdebi --non-interactive devkitpro-pacman.deb
+          
+          # Instalar herramientas para DSi (devkitARM, libnds, etc.)
           sudo dkp-pacman -Syy --noconfirm devkitARM dsi-dev
 
       - name: Compile game
