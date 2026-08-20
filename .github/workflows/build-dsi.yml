@@ -1,0 +1,43 @@
+name: Build Sonic CD DSi
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/baselayout:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install devkitARM and DSi dependencies
+        run: |
+          echo "deb [signed-by=/etc/apt/keyrings/devkitpro.gpg] https://apt.devkitpro.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/devkitpro.list
+          # Instalar herramientas básicas de pacman de devkitPro
+          dpsman -Syu || true
+          dpsman -S dsi-dev libnds maxmod cmake make
+
+      - name: Configure CMake for Nintendo DSi
+        run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=${DEVKITPRO}/devkitARM
+          export PATH=${DEVKITARM}/bin:${PATH}
+          
+          cmake -B build -G "Unix Makefiles" \
+            -DCMAKE_SYSTEM_NAME=Generic \
+            -DCMAKE_SYSTEM_PROCESSOR=arm \
+            -DCMAKE_C_COMPILER=arm-none-eabi-gcc \
+            -DCMAKE_CXX_COMPILER=arm-none-eabi-g++ \
+            -DCMAKE_EXE_LINKER_FLAGS="-specs=dsi.specs"
+
+      - name: Compile ROM
+        run: |
+          cmake --build build
+
+      - name: Upload compiled .nds file
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonicCD-DSi-ROM
+          path: build/**/*.nds
