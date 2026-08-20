@@ -15,15 +15,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget curl gdebi-core build-essential make
           
+          # Descargar el script de instalación
           wget --user-agent="Mozilla" https://apt.devkitpro.org/install-devkitpro-pacman
           chmod +x ./install-devkitpro-pacman
+          
+          # Evitar que el script ejecute pacman -Syy al final que da error 403
           sed -i 's/dkp-pacman -Syy/# dkp-pacman -Syy/g' install-devkitpro-pacman
           sudo ./install-devkitpro-pacman
           
+          # Inicializar manualmente el llavero de pacman y actualizar bases de datos de forma segura
           sudo mkdir -p /opt/devkitpro/pacman/etc/pacman.d/gnupg
           sudo /opt/devkitpro/pacman/bin/pacman-key --init || true
           sudo /opt/devkitpro/pacman/bin/pacman-key --populate devkitpro || true
           
+          # Forzar actualización de repositorios de manera individual o instalar directo
+          sudo dkp-pacman -Sy --noconfirm || true
           sudo dkp-pacman -S --noconfirm devkitARM nds-dev
 
       - name: Compile game with Make
