@@ -15,35 +15,24 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget curl gdebi-core build-essential make
           
-          # Descargar el script de instalación
           wget --user-agent="Mozilla" https://apt.devkitpro.org/install-devkitpro-pacman
           chmod +x ./install-devkitpro-pacman
-          
-          # Evitar que el script ejecute pacman -Syy al final que da error 403
           sed -i 's/dkp-pacman -Syy/# dkp-pacman -Syy/g' install-devkitpro-pacman
           sudo ./install-devkitpro-pacman
           
-          # Inicializar manualmente el llavero de pacman y sincronizar de forma segura
           sudo mkdir -p /opt/devkitpro/pacman/etc/pacman.d/gnupg
           sudo /opt/devkitpro/pacman/bin/pacman-key --init || true
           sudo /opt/devkitpro/pacman/bin/pacman-key --populate devkitpro || true
           
-          # Instalar herramientas para DSi (devkitARM, libnds, etc.)
           sudo dkp-pacman -S --noconfirm devkitARM nds-dev
 
-      - name: Fix Makefile and Compile game
+      - name: Compile game with Make
         run: |
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=${DEVKITPRO}/devkitARM
           export PATH=${DEVKITARM}/bin:${DEVKITPRO}/tools/bin:$PATH
           
           cd RSDKv3
-          
-          # Parchear el Makefile para que no falle con la ruta absoluta del subdirectorio build
-          sed -i 's/\$(CURDIR)\/build/build/g' Makefile
-          sed -i 's/all: \$(BUILD)/all:/g' Makefile
-          
-          # Compilar el juego para DSi
           make PLATFORM=dsi
 
       - name: Upload artifact
@@ -51,7 +40,5 @@ jobs:
         with:
           name: sonic-cd-dsi
           path: |
-            RSDKv3/*.nds
-            RSDKv3/*.dsi
             RSDKv3/build/*.nds
             RSDKv3/build/*.dsi
