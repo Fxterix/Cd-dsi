@@ -37,8 +37,9 @@ jobs:
           export DEVKITARM=${DEVKITPRO}/devkitARM
           export PATH=${DEVKITARM}/bin:${DEVKITPRO}/tools/bin:$PATH
           
-          # Entrar a la carpeta donde está el Makefile y compilar
+          # Entrar a la carpeta del motor, limpiar restos anteriores y compilar para DSi
           cd RSDKv3
+          make clean || true
           make PLATFORM=dsi
 
       - name: Upload artifact
