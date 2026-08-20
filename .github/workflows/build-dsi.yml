@@ -30,7 +30,8 @@ jobs:
           export DEVKITARM=${DEVKITPRO}/devkitARM
           export PATH=${DEVKITARM}/bin:${DEVKITPRO}/tools/bin:$PATH
           
-          # Compilar usando el Makefile nativo del proyecto para la plataforma DSi
+          # Entrar a la carpeta del proyecto donde está el Makefile y compilar
+          cd RSDKv3
           make PLATFORM=dsi
 
       - name: Upload artifact
@@ -38,7 +39,5 @@ jobs:
         with:
           name: sonic-cd-dsi
           path: |
-            *.nds
-            *.dsi
             RSDKv3/*.nds
             RSDKv3/*.dsi
