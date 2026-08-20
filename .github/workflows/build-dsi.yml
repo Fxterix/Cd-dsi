@@ -1,45 +1,32 @@
 name: Build Sonic CD DSi
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    container: false # Desactivamos contenedores Docker para evitar el error de acceso
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install devkitPro pacman and DSi dependencies
+      - name: Install devkitPro and DSi tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget curl gdebi-core lsb-release software-properties-common
-          
-          # Instalar clave y repositorio de devkitPro
+          sudo apt-get install -y wget curl gdebi-core
           sudo wget https://apt.devkitpro.org/devkitpro-keyring.gpg -O /usr/share/keyrings/devkitpro-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/devkitpro-keyring.gpg] https://apt.devkitpro.org stable main" | sudo tee /etc/apt/sources.list.d/devkitpro.list
           sudo apt-get update
-          
-          # Instalar herramientas para DSi (devkitARM, libnds, etc.)
           sudo dkp-pacman -Syy --noconfirm devkitARM dsi-dev
 
-      - name: Configure and Compile
+      - name: Compile game
         run: |
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=${DEVKITPRO}/devkitARM
           export PATH=${DEVKITARM}/bin:${DEVKITPRO}/tools/bin:$PATH
-          
-          # Aquí se ejecuta la compilación (ajusta según tu Makefile o CMakeLists)
           make -C RSDKv3 PLATFORM=dsi
-        shell: bash
 
-      - name: Upload compiled .nds file
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: sonic-cd-dsi
