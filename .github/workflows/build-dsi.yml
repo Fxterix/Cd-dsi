@@ -20,7 +20,7 @@ jobs:
           chmod +x ./install-devkitpro-pacman
           
           # Evitar que el script ejecute pacman -Syy al final que da error 403
-          sed -i 's/dkp-pacman -Syy/# dkp-pacman -Syy/g' install-devkitpro-pacman
+          sed -i 's/dkp-pacman -Syy/# dk-pacman -Syy/g' install-devkitpro-pacman
           sudo ./install-devkitpro-pacman
           
           # Inicializar manualmente el llavero de pacman y sincronizar de forma segura
@@ -37,9 +37,8 @@ jobs:
           export DEVKITARM=${DEVKITPRO}/devkitARM
           export PATH=${DEVKITARM}/bin:${DEVKITPRO}/tools/bin:$PATH
           
-          # Entrar a RSDKv3, crear la carpeta build localmente y compilar
+          # Entrar directamente a RSDKv3 y ejecutar el make limpio para DSi
           cd RSDKv3
-          mkdir -p build
           make PLATFORM=dsi
 
       - name: Upload artifact
