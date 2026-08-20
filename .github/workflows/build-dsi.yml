@@ -15,17 +15,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget curl gdebi-core
           
-          # Descargar e instalar directamente el paquete .deb de pacman de devkitPro
-          wget --user-agent="Mozilla" https://github.com/devkitPro/pacman/releases/latest/download/devkitpro-pacman.amd64.deb -O devkitpro-pacman.deb
-          sudo gdebi --non-interactive devkitpro-pacman.deb
+          # Usar el método oficial estándar con wget para el script instalador de devkitPro
+          wget --user-agent="Mozilla" https://apt.devkitpro.org/install-devkitpro-pacman
+          chmod +x ./install-devkitpro-pacman
           
-          # Configurar las llaves y la ruta de forma limpia
+          # Permitir que el script corra creando primero las carpetas de seguridad necesarias
           sudo mkdir -p /opt/devkitpro/pacman/etc/pacman.d/gnupg
-          sudo /opt/devkitpro/pacman/bin/pacman-key --init
-          sudo /opt/devkitpro/pacman/bin/pacman-key --populate devkitpro
+          sudo ./install-devkitpro-pacman
           
-          # Sincronizar y actualizar con dkp-pacman usando los paquetes correctos para DS/DSi
-          sudo dkp-pacman -Syy --noconfirm devkitARM nds-dev
+          # Instalar devkitARM y las herramientas de Nintendo DS/DSi
+          sudo dkp-pacman -S --noconfirm devkitARM nds-dev
 
       - name: Compile game
         run: |
