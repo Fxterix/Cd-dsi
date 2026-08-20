@@ -15,13 +15,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget curl gdebi-core build-essential make
           
-          # Descargar y ejecutar el script oficial de instalación
+          # Descargar el script de instalación
           wget --user-agent="Mozilla" https://apt.devkitpro.org/install-devkitpro-pacman
           chmod +x ./install-devkitpro-pacman
-          sudo mkdir -p /opt/devkitpro/pacman/etc/pacman.d/gnupg
+          
+          # Evitar que el script ejecute pacman -Syy al final que da error 403
+          sed -i 's/dkp-pacman -Syy/# dkp-pacman -Syy/g' install-devkitpro-pacman
           sudo ./install-devkitpro-pacman
           
-          # Instalar devkitARM y las herramientas de Nintendo DS/DSi
+          # Inicializar manualmente el llavero de pacman y sincronizar de forma segura
+          sudo mkdir -p /opt/devkitpro/pacman/etc/pacman.d/gnupg
+          sudo /opt/devkitpro/pacman/bin/pacman-key --init || true
+          sudo /opt/devkitpro/pacman/bin/pacman-key --populate devkitpro || true
+          
+          # Instalar herramientas para DSi (devkitARM, libnds, etc.)
           sudo dkp-pacman -S --noconfirm devkitARM nds-dev
 
       - name: Compile game with Make
@@ -30,7 +37,7 @@ jobs:
           export DEVKITARM=${DEVKITPRO}/devkitARM
           export PATH=${DEVKITARM}/bin:${DEVKITPRO}/tools/bin:$PATH
           
-          # Entrar a la carpeta del proyecto donde está el Makefile y compilar
+          # Entrar a la carpeta donde está el Makefile y compilar
           cd RSDKv3
           make PLATFORM=dsi
 
