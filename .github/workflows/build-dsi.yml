@@ -15,13 +15,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget curl gdebi-core
           
-          # Descargar y ejecutar el script oficial exacto de devkitPro
+          # Descargar el script de instalación
           wget --user-agent="Mozilla" https://apt.devkitpro.org/install-devkitpro-pacman
           chmod +x ./install-devkitpro-pacman
+          
+          # Evitar que el script ejecute pacman -Syy al final pasando una variable o modificándolo,
+          # o ejecutándolo y luego reintentando la sincronización de manera correcta.
+          # Una forma limpia es deshabilitar la actualización automática editando el script antes de correrlo:
+          sed -i 's/dkp-pacman -Syy/# dkp-pacman -Syy/g' install-devkitpro-pacman
           sudo ./install-devkitpro-pacman
           
+          # Inicializar manualmente el llavero de pacman y sincronizar con reintentos
+          sudo dkg-keys --init || true
+          sudo /opt/devkitpro/pacman/bin/pacman-key --init
+          sudo /opt/devkitpro/pacman/bin/pacman-key --populate devkitpro
+          
           # Instalar herramientas para DSi (devkitARM, libnds, etc.)
-          sudo dkp-pacman -Syy --noconfirm devkitARM dsi-dev
+          sudo dkp-pacman -S --noconfirm devkitARM dsi-dev
 
       - name: Compile game
         run: |
