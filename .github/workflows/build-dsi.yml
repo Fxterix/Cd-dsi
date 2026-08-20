@@ -1,43 +1,48 @@
 name: Build Sonic CD DSi
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/baselayout:latest
+
+    container: false # Desactivamos contenedores Docker para evitar el error de acceso
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Install devkitARM and DSi dependencies
+      - name: Install devkitPro pacman and DSi dependencies
         run: |
-          echo "deb [signed-by=/etc/apt/keyrings/devkitpro.gpg] https://apt.devkitpro.org $(lsb_release -sc) main" > /etc/apt/sources.list.d/devkitpro.list
-          # Instalar herramientas básicas de pacman de devkitPro
-          dpsman -Syu || true
-          dpsman -S dsi-dev libnds maxmod cmake make
+          sudo apt-get update
+          sudo apt-get install -y wget curl gdebi-core lsb-release software-properties-common
+          
+          # Instalar clave y repositorio de devkitPro
+          sudo wget https://apt.devkitpro.org/devkitpro-keyring.gpg -O /usr/share/keyrings/devkitpro-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/devkitpro-keyring.gpg] https://apt.devkitpro.org stable main" | sudo tee /etc/apt/sources.list.d/devkitpro.list
+          sudo apt-get update
+          
+          # Instalar herramientas para DSi (devkitARM, libnds, etc.)
+          sudo dkp-pacman -Syy --noconfirm devkitARM dsi-dev
 
-      - name: Configure CMake for Nintendo DSi
+      - name: Configure and Compile
         run: |
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=${DEVKITPRO}/devkitARM
-          export PATH=${DEVKITARM}/bin:${PATH}
+          export PATH=${DEVKITARM}/bin:${DEVKITPRO}/tools/bin:$PATH
           
-          cmake -B build -G "Unix Makefiles" \
-            -DCMAKE_SYSTEM_NAME=Generic \
-            -DCMAKE_SYSTEM_PROCESSOR=arm \
-            -DCMAKE_C_COMPILER=arm-none-eabi-gcc \
-            -DCMAKE_CXX_COMPILER=arm-none-eabi-g++ \
-            -DCMAKE_EXE_LINKER_FLAGS="-specs=dsi.specs"
-
-      - name: Compile ROM
-        run: |
-          cmake --build build
+          # Aquí se ejecuta la compilación (ajusta según tu Makefile o CMakeLists)
+          make -C RSDKv3 PLATFORM=dsi
+        shell: bash
 
       - name: Upload compiled .nds file
         uses: actions/upload-artifact@v4
         with:
-          name: SonicCD-DSi-ROM
-          path: build/**/*.nds
+          name: sonic-cd-dsi
+          path: |
+            RSDKv3/*.nds
+            RSDKv3/*.dsi
