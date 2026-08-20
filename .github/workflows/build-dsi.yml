@@ -13,30 +13,36 @@ jobs:
       - name: Install devkitPro and DSi tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget curl gdebi-core
+          sudo apt-get install -y wget curl gdebi-core cmake
           
-          # Usar el método oficial estándar con wget para el script instalador de devkitPro
+          # Descargar y ejecutar el script oficial de instalación
           wget --user-agent="Mozilla" https://apt.devkitpro.org/install-devkitpro-pacman
           chmod +x ./install-devkitpro-pacman
-          
-          # Permitir que el script corra creando primero las carpetas de seguridad necesarias
           sudo mkdir -p /opt/devkitpro/pacman/etc/pacman.d/gnupg
           sudo ./install-devkitpro-pacman
           
           # Instalar devkitARM y las herramientas de Nintendo DS/DSi
           sudo dkp-pacman -S --noconfirm devkitARM nds-dev
 
-      - name: Compile game
+      - name: Compile game with CMake
         run: |
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=${DEVKITPRO}/devkitARM
           export PATH=${DEVKITARM}/bin:${DEVKITPRO}/tools/bin:$PATH
-          make -C RSDKv3 PLATFORM=dsi
+          
+          # Crear carpeta de compilación y configurar CMake para DSi/NDS
+          mkdir -p build
+          cd build
+          cmake .. -DCMAKE_TOOLCHAIN_FILE=${DEVKITPRO}/cmake/gba.cmake -DPLATFORM=dsi
+          
+          # Compilar el proyecto
+          make
+        shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: sonic-cd-dsi
           path: |
-            RSDKv3/*.nds
-            RSDKv3/*.dsi
+            build/*.nds
+            build/*.dsi
