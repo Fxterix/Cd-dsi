@@ -10,25 +10,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install devkitPro and DSi tools
+      - name: Manual Install devkitPro and Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget curl gdebi-core build-essential make
+          sudo apt-get install -y wget curl build-essential make libarchive-tools
           
-          # Descargar el script de instalación simulando un navegador con -U para evitar bloqueos 403
-          wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://apt.devkitpro.org/install-devkitpro-pacman
-          chmod +x ./install-devkitpro-pacman
-          
-          # Ejecutar el instalador
-          sudo ./install-devkitpro-pacman
-          
-          # Inicializar llaves de pacman de forma segura
+          # Crear la estructura de directorios de devkitPro manualmente
           sudo mkdir -p /opt/devkitpro/pacman/etc/pacman.d/gnupg
-          sudo /opt/devkitpro/pacman/bin/pacman-key --init || true
+          sudo mkdir -p /opt/devkitpro/pacman/var/lib/pacman
+          sudo mkdir -p /opt/devkitpro/pacman/var/cache/pacman/pkg
+          
+          # Descargar e instalar el paquete pacman de devkitpro directamente desde github o mirrors alternativos sin usar el script oficial roto
+          wget https://github.com/devkitPro/pacman-package/releases/download/v1.0.2/devkitpro-pacman.deb
+          sudo dpkg -i devkitpro-pacman.deb || true
+          sudo apt-get install -f -y
+          
+          # Configurar llaves de pacman de forma segura
+          sudo /opt/devkitpro/pacman/bin/pacman-key --init
           sudo /opt/devkitpro/pacman/bin/pacman-key --populate devkitpro || true
           
-          # Instalar los paquetes directamente sin forzar sincronización masiva que active el WAF
-          sudo /opt/devkitpro/pacman/bin/pacman -S --noconfirm devkitARM nds-dev || sudo dkp-pacman -S --noconfirm devkitARM nds-dev
+          # Instalar herramientas para DSi (devkitARM, libnds)
+          sudo dkp-pacman -S --noconfirm devkitARM nds-dev || sudo /opt/devkitpro/pacman/bin/pacman -S --noconfirm devkitARM nds-dev
 
       - name: Compile game with Make
         run: |
